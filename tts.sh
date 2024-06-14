@@ -22,7 +22,8 @@ case $1 in
         ;;
     *)
         echo "Invalid language"
-        exit 1
+        LANGUAGE='en-US'
+	#exit;
         ;;
 esac
 
@@ -37,6 +38,9 @@ CONTENTS_OF_TEXTFILE=$(cat textfile.txt)
 
 echo $CONTENTS_OF_TEXTFILE
 
-# Call pico2wave with the appropriate arguments - You can also change this to use say on OSX or other TTS systems
-pico2wave -l $LANGUAGE -w output.wav "${CONTENTS_OF_TEXTFILE}"
+# Call pico2wave with the appropriate arguments
+pico2wave -l $LANGUAGE -w output_slow.wav "${CONTENTS_OF_TEXTFILE}"
+# Speed up things
+sox output_slow.wav output.wav tempo 1.2
+rm output_slow.wav
 rm textfile.txt
