@@ -1,6 +1,9 @@
 import cld3
 from flask import Flask, request, send_file
+import torch
+from transformers import pipeline
 import os
+import json
 app = Flask(__name__)
 
 def remember_language(lang: str):
@@ -13,6 +16,15 @@ def last_language() -> str | None:
 
     with open('last-language', 'r') as f:
         return f.readline()
+
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
+PIPE = pipeline(
+  "automatic-speech-recognition",
+  model="openai/whisper-medium",
+  chunk_length_s=30,
+  device=device,
+)
 
 
 @app.route('/v1/audio/speech', methods=['POST'])
@@ -37,5 +49,16 @@ def speech():
     
     return send_file('output.wav', mimetype='audio/x-wav')  # Return the audio file in the HTTP response
 
+
+@app.route('/v1/audio/transcriptions', methods=['POST'])
+def transcribe():
+    file = request.files['file']
+    file.save('upload.wav')
+    transcription = PIPE('upload.wav')
+
+    return json.dumps(transcription), 200
+
+
 if __name__ == '__main__':
     app.run(port=5000, host="0.0.0.0")
+    app.config['UPLOAD_FOLDER'] = '.'
