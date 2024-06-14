@@ -1,1 +1,3 @@
 pycld3
+pytorch
+torchaudio
