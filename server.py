@@ -1,9 +1,10 @@
 import cld3
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, jsonify
 import torch
 from transformers import pipeline
 import os
 import json
+import base64
 app = Flask(__name__)
 
 def remember_language(lang: str):
@@ -26,6 +27,18 @@ PIPE = pipeline(
   device=device,
 )
 
+@app.route('/v1/images/generations', methods=['POST'])
+def image():
+    data = request.get_json()  # Get the JSON input from the POST request
+    prompt = data['prompt']  # Extract the 'input' field
+        
+    os.system(f"./gen_image.sh \"{prompt}\"")
+    
+    file_text = open('image.png', 'rb')
+    file_read = file_text.read()
+    b64img = base64.encodebytes(file_read).decode('utf-8')
+    o = {"data": [{'b64_json': b64img}]}
+    return jsonify(o)
 
 @app.route('/v1/audio/speech', methods=['POST'])
 def speech():
